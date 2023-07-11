@@ -44,7 +44,7 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET, PUT, POST, DELETE, OPTIONS"},
+		AllowedMethods:   []string{"GET", "PUT", "POST", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -55,9 +55,11 @@ func main() {
 	v1router := chi.NewRouter()
 	v1router.Get("/status", handlerReady)
 	v1router.Get("/error", handlerError)
+	/**RESGISTER / LOGIN*/
+	v1router.Post("/register", apiCfg.handlerUserCreate)
+	v1router.Post("/login", apiCfg.handlerUserLogin)
 	/**USERS */
-	v1router.Post("/users", apiCfg.handlerUserCreate)
-	v1router.Get("/users/{username}", apiCfg.handlerGetUserFromName)
+	v1router.Get("/users/{user}", apiCfg.handlerGetUserFromNameOrID)
 	v1router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerGetUserFromAPI))
 	v1router.Get("/users_likes", apiCfg.handlerGetAllUserLikes)
 	/**FOLLOWS */
@@ -66,7 +68,9 @@ func main() {
 	v1router.Get("/users_follows", apiCfg.handlerGetFollowing)
 	v1router.Get("/users_followers", apiCfg.handlerGetFollowers)
 	/**POSTS */
+	v1router.Get("/posts", apiCfg.handlerGetPosts)
 	v1router.Post("/posts", apiCfg.middlewareAuth(apiCfg.handlerCreatePost))
+	v1router.Get("/posts/{userID}", apiCfg.handlerGetPostsFromUser)
 	v1router.Delete("/posts/{postID}", apiCfg.middlewareAuth(apiCfg.handlerDeletePost))
 	v1router.Post("/posts_likes", apiCfg.middlewareAuth(apiCfg.handlerLikePost))
 	v1router.Get("/posts_likes", apiCfg.handlerGetPostLikes)

@@ -39,6 +39,35 @@ func (apiCfg *apiConfig) handlerCreatePost(w http.ResponseWriter, r *http.Reques
 	respondWithJSON(w, http.StatusCreated, returnPost(post))
 }
 
+/**GET ALL POSTS */
+func (apiCfg *apiConfig) handlerGetPosts(w http.ResponseWriter, r *http.Request) {
+	userPosts, err := apiCfg.DB.GetPosts(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error getting posts: %s", err))
+		return
+	}
+
+	respondWithJSON(w, http.StatusAccepted, returnPosts(userPosts))
+}
+
+/**GET POSTS FROM A USER */
+func (apiCfg *apiConfig) handlerGetPostsFromUser(w http.ResponseWriter, r *http.Request) {
+	userIDstr := chi.URLParam(r, "userID")
+	userID, err := uuid.Parse(userIDstr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error parsing the user id: %s", err))
+		return
+	}
+
+	userPosts, err := apiCfg.DB.GetPostsFromUser(r.Context(), userID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Error getting posts from user: %s", err))
+		return
+	}
+
+	respondWithJSON(w, http.StatusAccepted, returnUserPosts(userPosts))
+}
+
 /**UNLIKE A POST */
 func (apiCfg *apiConfig) handlerDeletePost(w http.ResponseWriter, r *http.Request, user database.User) {
 	postIDstr := chi.URLParam(r, "postID")

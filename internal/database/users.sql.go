@@ -91,8 +91,42 @@ func (q *Queries) GetUser(ctx context.Context, apiKey string) (User, error) {
 	return i, err
 }
 
+const getUserFromLogin = `-- name: GetUserFromLogin :one
+SELECT id, created_at, updated_at, name, display_name, email, password, description, verified, organization, api_key FROM users WHERE name = $1 OR email = $1
+`
+
+func (q *Queries) GetUserFromLogin(ctx context.Context, name string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserFromLogin, name)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.DisplayName,
+		&i.Email,
+		&i.Password,
+		&i.Description,
+		&i.Verified,
+		&i.Organization,
+		&i.ApiKey,
+	)
+	return i, err
+}
+
+const getUserIDfromName = `-- name: GetUserIDfromName :one
+SELECT id FROM users WHERE name = $1
+`
+
+func (q *Queries) GetUserIDfromName(ctx context.Context, name string) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getUserIDfromName, name)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUserInfo = `-- name: GetUserInfo :one
-SELECT id, created_at, name, display_name, description, verified, organization FROM users WHERE name = $1
+SELECT id, created_at, name, display_name, description, verified, organization FROM users WHERE id = $1
 `
 
 type GetUserInfoRow struct {
@@ -105,8 +139,8 @@ type GetUserInfoRow struct {
 	Organization bool
 }
 
-func (q *Queries) GetUserInfo(ctx context.Context, name string) (GetUserInfoRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserInfo, name)
+func (q *Queries) GetUserInfo(ctx context.Context, id uuid.UUID) (GetUserInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserInfo, id)
 	var i GetUserInfoRow
 	err := row.Scan(
 		&i.ID,

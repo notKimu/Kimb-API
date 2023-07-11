@@ -48,3 +48,67 @@ func (q *Queries) DeletePost(ctx context.Context, arg DeletePostParams) error {
 	_, err := q.db.ExecContext(ctx, deletePost, arg.ID, arg.UserID)
 	return err
 }
+
+const getPosts = `-- name: GetPosts :many
+SELECT id, created_at, content, user_id FROM posts ORDER BY created_at DESC
+`
+
+func (q *Queries) GetPosts(ctx context.Context) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getPosts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.Content,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostsFromUser = `-- name: GetPostsFromUser :many
+SELECT id, created_at, content, user_id FROM posts WHERE user_id=$1 ORDER BY created_at DESC
+`
+
+func (q *Queries) GetPostsFromUser(ctx context.Context, userID uuid.UUID) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getPostsFromUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.Content,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

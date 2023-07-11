@@ -35,6 +35,11 @@ func returnUser(dbUser database.User) User {
 	// Not returning password not email
 }
 
+type LoginUser struct {
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
+}
+
 /**POST MODELS */
 type Post struct {
 	ID        uuid.UUID `json:"id"`
@@ -49,6 +54,22 @@ func returnPost(dbPost database.Post) Post {
 		Content: dbPost.Content,
 		UserID:  dbPost.UserID,
 	}
+}
+
+func returnPosts(dbPosts []database.Post) []Post {
+	allPosts := []Post{}
+	for _, dbUserPost := range dbPosts {
+		allPosts = append(allPosts, returnPost(dbUserPost))
+	}
+	return allPosts
+}
+
+func returnUserPosts(dbUserPosts []database.Post) []Post {
+	allUserPosts := []Post{}
+	for _, dbUserPost := range dbUserPosts {
+		allUserPosts = append(allUserPosts, returnPost(dbUserPost))
+	}
+	return allUserPosts
 }
 
 /**LIKE POST MODELS */

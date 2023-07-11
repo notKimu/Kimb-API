@@ -7,8 +7,12 @@ import (
 )
 
 /**GET API KEY FROM REQUEST HEADER */
-func GetApiKey(headers http.Header) (string, error) {
-	authKey := headers.Get("Authorization")
+func GetApiKey(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("Authorization")
+	if err != nil {
+		return "", errors.New("couldn't find authorization key")
+	}
+	authKey := cookie.Value
 
 	if authKey == "" {
 		return "", errors.New("couldn't find authorization key")
@@ -20,7 +24,7 @@ func GetApiKey(headers http.Header) (string, error) {
 	}
 
 	if splittedKey[0] != "ApiKey" {
-		return "", errors.New("wrong authorization type")
+		return "", errors.New("wrong authorization type, should be ApiKey <key>")
 	}
 
 	return splittedKey[1], nil
